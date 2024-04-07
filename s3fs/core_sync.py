@@ -215,7 +215,7 @@ class S3SyncFileSystem(AbstractFileSystem):
     kwargs : other parameters for core session.
     session : aiobotocore AioSession object to be used for all connections.
          This session will be used inplace of creating a new session inside S3FileSystem.
-         For example: aiobotocore.session.AioSession(profile='test_user')
+         For example: boto3.session.Session(profile='test_user')
     max_concurrency : int (1)
         The maximum number of concurrent transfers to use per file for multipart
         upload (``put()``) operations. Defaults to 1 (sequential). When used in
@@ -485,7 +485,7 @@ class S3SyncFileSystem(AbstractFileSystem):
 
         conf = botocore.config.Config(**config_kwargs)
         if self.session is None:
-            self.session = boto3.Session(**self.kwargs)
+            self.session = boto3.session.Session(**self.kwargs)
 
         for parameters in (config_kwargs, self.kwargs, init_kwargs, client_kwargs):
             for option in ("region_name", "endpoint_url"):
@@ -520,7 +520,7 @@ class S3SyncFileSystem(AbstractFileSystem):
         #     weakref.finalize(self, self.close_session, self.loop, self._s3creator)
 
         # TODO: review this and make sure it's correctly matches logic above including close
-        self._s3 = self.session.create_client(
+        self._s3 = self.session.client(
             "s3", config=conf, **init_kwargs, **client_kwargs
         )
         self._kwargs_helper = ParamKwargsHelper(self._s3)
@@ -575,7 +575,7 @@ class S3SyncFileSystem(AbstractFileSystem):
             }
         if self.key is None or self.secret is None:  # automatic credentials
             return {"anon": False}
-        with self.session.create_client("sts") as sts:
+        with self.session.client("sts") as sts:
             cred = sts.get_session_token(DurationSeconds=exp)["Credentials"]
             return {
                 "key": cred["AccessKeyId"],
