@@ -2,6 +2,7 @@
 import errno
 import logging
 import mimetypes
+import numbers
 import os
 import socket
 import time
@@ -1050,6 +1051,32 @@ class S3SyncFileSystem(AbstractFileSystem):
                 return True
             except Exception:
                 return False
+
+    def _process_limits(self, url, start, end):
+        """Helper for "Range"-based _cat_file"""
+        size = None
+        suff = False
+        if start is not None and start < 0:
+            # if start is negative and end None, end is the "suffix length"
+            if end is None:
+                end = -start
+                start = ""
+                suff = True
+            else:
+                size = size or (self.info(url))["size"]
+                start = size + start
+        elif start is None:
+            start = 0
+        if not suff:
+            if end is not None and end < 0:
+                if start is not None:
+                    size = size or (self.info(url))["size"]
+                    end = size + end
+            elif end is None:
+                end = ""
+            if isinstance(end, numbers.Integral):
+                end -= 1  # bytes range is inclusive
+        return f"bytes={start}-{end}"
 
     def touch(self, path, truncate=True, data=None, **kwargs):
         """Create empty file or truncate"""
