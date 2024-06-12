@@ -16,6 +16,7 @@ import fsspec  # noqa: F401
 from fsspec.spec import AbstractBufferedFile, AbstractFileSystem
 from fsspec.utils import infer_storage_options, tokenize, setup_logging as setup_logger
 from fsspec.callbacks import _DEFAULT_CALLBACK
+from fsspec.registry import register_implementation
 
 import boto3
 import botocore
@@ -2031,6 +2032,10 @@ class S3SyncFileSystem(AbstractFileSystem):
         # TODO: review if boto3 allows this type of interaction
         if self._s3 is not None:
             self._s3.clear()
+
+    @classmethod
+    def overwrite_async_registration(cls):
+        register_implementation("s3", cls, clobber=True)
 
 
 class S3SyncFile(AbstractBufferedFile):
