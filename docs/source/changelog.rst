@@ -1,6 +1,18 @@
 Changelog
 =========
 
+2024.6.0
+--------
+
+no changes
+
+2024.5.0
+--------
+
+- widen fsspec req version (#869)
+- _bulk_delete must return list (#866)
+- retry on "reduce request rate" (#865)
+
 2024.3.1
 --------
 
